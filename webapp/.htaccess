@@ -1,0 +1,141 @@
+# VAIBad Webanwendung - .htaccess
+
+# Apache Konfiguration
+Options +FollowSymLinks -Indexes
+
+# UTF-8 Kodierung
+AddDefaultCharset UTF-8
+
+# PHP Einstellungen
+php_value default_charset "UTF-8"
+php_value mbstring.internal_encoding "UTF-8"
+php_value mbstring.http_input "UTF-8"
+php_value mbstring.http_output "UTF-8"
+php_value mbstring.language "German"
+php_value mbstring.func_overload 7
+
+# Fehlerbehandlung
+php_flag display_errors Off
+php_flag log_errors On
+php_value error_log /workspace/Ottokarder__VAIBad/webapp/logs/php_errors.log
+php_value error_reporting E_ALL
+
+# URL Rewrite
+RewriteEngine On
+RewriteBase /webapp/
+
+# Index-Datei
+DirectoryIndex index.php
+
+# Dateitypen
+<IfModule mod_mime.c>
+    AddType application/javascript .js
+    AddType text/css .css
+    AddType text/html .html .htm
+    AddType image/png .png
+    AddType image/jpeg .jpg .jpeg
+    AddType image/gif .gif
+    AddType image/svg+xml .svg
+    AddType text/plain .sql
+</IfModule>
+
+# Caching
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresDefault "access plus 1 month"
+    
+    # Bilder
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    
+    # CSS und JS
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    
+    # HTML
+    ExpiresByType text/html "access plus 1 day"
+</IfModule>
+
+# Komprimierung
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/x-javascript
+</IfModule>
+
+# Sicherheit
+<IfModule mod_security2.c>
+    SecServerSignature Off
+    SecFilterEngine On
+    SecFilterScanPOST On
+</IfModule>
+
+# Verzeichnisschutz
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Schutz vor Hotlinking
+RewriteCond %{HTTP_REFERER} !^https://.*vaibad.* [NC]
+RewriteCond %{HTTP_REFERER} !^http://.*vaibad.* [NC]
+RewriteRule \.(jpg|jpeg|png|gif|svg|css|js)$ - [NC,F,L]
+
+# Schutz vor SQL-Injection
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} GLOBALS(=|\[|%5B) [OR]
+RewriteCond %{QUERY_STRING} _REQUEST(=|\[|%5B) [OR]
+RewriteCond %{QUERY_STRING} ^.*(\x00|\x04|\x08|\x0D|\x10|\x13|\x16|\x18|\x1B|\x20|\x7F).*.$ [NC]
+RewriteRule ^(.*)$ - [F,L]
+
+# Schutz vor XSS
+RewriteCond %{QUERY_STRING} (\<|%3C).*script.*(\>|%3E) [NC,OR]
+RewriteCond %{QUERY_STRING} (javascript|vbscript|expression)(:|\() [NC]
+RewriteRule ^(.*)$ - [F,L]
+
+# Schutz vor Datei-Inklusion
+RewriteCond %{QUERY_STRING} (\.\./|\.\.\\|~|`|\\|\|;|\|\||&|\$|\%|\*|\?|\^) [NC,OR]
+RewriteCond %{QUERY_STRING} (//|/\\|\\\\|\.\.|\.\./|\.\.\\|~/|`|\\|\||;|\$|\%|\*|\?|\^) [NC]
+RewriteRule ^(.*)$ - [F,L]
+
+# Schutz vor PHP-Code in Uploads
+<FilesMatch "\.php$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Uploads-Verzeichnis
+<Directory "uploads">
+    php_flag engine Off
+    AddType text/plain .php .phtml .php3 .php4 .php5 .phps
+</Directory>
+
+# Logs-Verzeichnis
+<Directory "logs">
+    php_flag engine Off
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Cache-Verzeichnis
+<Directory "cache">
+    php_flag engine Off
+    Order allow,deny
+    Deny from all
+</Directory>
+
+# Fehlerdokumente
+ErrorDocument 400 /webapp/400.php
+ErrorDocument 401 /webapp/401.php
+ErrorDocument 403 /webapp/403.php
+ErrorDocument 404 /webapp/404.php
+ErrorDocument 500 /webapp/500.php
+
+# Weiterleitung für www
+RewriteCond %{HTTP_HOST} ^www\.(.+)$ [NC]
+RewriteRule ^ https://%1%{REQUEST_URI} [R=301,L]
+
+# HTTPS erzwingen
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]

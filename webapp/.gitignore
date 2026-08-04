@@ -1,0 +1,55 @@
+# VAIBad Webanwendung - .gitignore
+
+# Systemdateien
+.DS_Store
+Thumbs.db
+
+# IDE-Konfigurationen
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Uploads (können groß sein)
+uploads/
+
+# Cache
+cache/
+
+# Session-Daten
+session/
+
+# temporäre Dateien
+tmp/
+temp/
+
+# Datenbank-Backups
+*.sql
+*.sql.gz
+
+# Konfiguration (sensible Daten)
+config.php
+config.local.php
+.env
+.env.local
+
+# Composer (falls verwendet)
+vendor/
+composer.lock
+
+# Node.js (falls verwendet)
+node_modules/
+package-lock.json
+
+# Build-Dateien
+build/
+dist/
+
+# OS-spezifische Dateien
+*.bak
+*.tmp
