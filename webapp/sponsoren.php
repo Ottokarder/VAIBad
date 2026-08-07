@@ -344,4 +344,22 @@ try {
                             $stmt->execute([$sponsor['id']]);
                             $hs = $stmt->fetch(PDO::FETCH_ASSOC);
                             if ($hs):
-                                echo "<p>Betrag pro Bahn: 
+                                echo "<p>Betrag pro Bahn:                                 echo htmlspecialchars($hs['betrag_pro_bahn'] ?? 'Nicht konfiguriert');
+                                echo "</p><p>Limit: ";
+                                echo htmlspecialchars($hs['limit'] ?? 'Kein Limit');
+                                echo "</p>";
+                            else:
+                                echo "<p class='text-muted'>Keine Hauptsponsor-Einstellungen gefunden</p>";
+                            endif;
+                            ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endif; ?>
+
+<?php
+require_once __DIR__ . '/includes/footer.php';
+?>
