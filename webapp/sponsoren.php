@@ -1,5 +1,9 @@
 <?php
 require_once __DIR__ . '/config.php';
+
+// Seite Titel definieren
+$page_title = "Sponsoren verwalten";
+
 require_once __DIR__ . '/includes/header.php';
 
 // Aktionen verarbeiten
