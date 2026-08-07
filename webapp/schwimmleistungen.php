@@ -62,13 +62,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = "success";
         }
         
-        // Weiterleitung mit POST-Werten (nicht GET)
-        $schwimmer_id_param = isset($_POST['schwimmer_id']) ? '&schwimmer_id=' . (int)$_POST['schwimmer_id'] : '';
+        // Weiterleitung mit korrekter URL (? statt & am Anfang)
         if (isset($_POST['save_and_continue'])) {
-            header("Location: schwimmleistungen.php?action=edit&id=$id" . $schwimmer_id_param);
+            // Für "Speichern & Weiter bearbeiten": action=edit + id + schwimmer_id
+            $params = '?action=edit&id=' . $id;
+            if (isset($_POST['schwimmer_id']) && !empty($_POST['schwimmer_id'])) {
+                $params .= '&schwimmer_id=' . (int)$_POST['schwimmer_id'];
+            }
+            header("Location: schwimmleistungen.php" . $params);
             exit();
         } else {
-            header("Location: schwimmleistungen.php" . $schwimmer_id_param);
+            // Für "Speichern": nur schwimmer_id (falls gesetzt)
+            $params = '';
+            if (isset($_POST['schwimmer_id']) && !empty($_POST['schwimmer_id'])) {
+                $params = '?schwimmer_id=' . (int)$_POST['schwimmer_id'];
+            }
+            header("Location: schwimmleistungen.php" . $params);
             exit();
         }
     } catch (PDOException $e) {
