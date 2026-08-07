@@ -2,6 +2,9 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/header.php';
 
+// Seite Titel definieren
+$page_title = "Schwimmer-Sponsoren verwalten";
+
 // Aktionen verarbeiten
 $action = $_GET['action'] ?? 'list';
 $message = '';
@@ -42,7 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
         $schwimmer_id = (int)$_POST['schwimmer_id'];
         $sponsor_id = (int)$_POST['sponsor_id'];
+        
+        // Betrag pro Bahn: Komma durch Punkt ersetzen und als Float speichern
         $betrag_pro_bahn = (float)str_replace(',', '.', $_POST['betrag_pro_bahn']);
+        
+        // Limit-Betrag: Optional, nur setzen wenn ein Wert eingegeben wurde
         $limit_betrag = $_POST['limit_betrag'] !== '' ? (float)str_replace(',', '.', $_POST['limit_betrag']) : null;
         
         if ($id) {
@@ -60,13 +67,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = "success";
         }
         
-        // Weiterleitung
+        // Weiterleitung mit den tatsächlichen POST-Werten (nicht GET)
         $filter_params = '';
-        if (isset($_GET['schwimmer_id'])) {
-            $filter_params .= '&schwimmer_id=' . $_GET['schwimmer_id'];
+        if (isset($_POST['schwimmer_id']) && !empty($_POST['schwimmer_id'])) {
+            $filter_params .= '&schwimmer_id=' . (int)$_POST['schwimmer_id'];
         }
-        if (isset($_GET['sponsor_id'])) {
-            $filter_params .= '&sponsor_id=' . $_GET['sponsor_id'];
+        if (isset($_POST['sponsor_id']) && !empty($_POST['sponsor_id'])) {
+            $filter_params .= '&sponsor_id=' . (int)$_POST['sponsor_id'];
         }
         
         if (isset($_POST['save_and_continue'])) {
@@ -305,7 +312,7 @@ $current_year = date('Y');
                                         <?php endif; ?>
                                     </td>
                                     <td><?php echo number_format($v['betrag_pro_bahn'], 2, ',', '.'); ?> €</td>
-                                    <td><?php echo $v['limit_betrag'] ? number_format($v['limit_betrag'], 2, ',', '.') . ' €' : '-'; ?></td>
+                                    <td><?php echo $v['limit_betrag'] ? number_format($v['limit_betrag'], 2, ',', '.') . ' €' : '-' ?></td>
                                     <td><?php echo number_format($spendenbetrag, 2, ',', '.'); ?> €</td>
                                     <td>
                                         <a href="schwimmer_sponsoren.php?action=edit&id=<?php echo $v['id']; ?>" 
@@ -390,17 +397,17 @@ $current_year = date('Y');
                                 <label for="betrag_pro_bahn" class="form-label">Betrag pro Bahn (€) *</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control validate-decimal" id="betrag_pro_bahn" name="betrag_pro_bahn" 
-                                           value="<?php echo htmlspecialchars(str_replace('.', ',', $verknuepfung['betrag_pro_bahn'] ?? '0.00')); ?>" 
+                                           value="<?php echo htmlspecialchars(str_replace('.', ',', number_format($verknuepfung['betrag_pro_bahn'] ?? 0.00, 2, '.', ''))); ?>" 
                                            required>
                                     <span class="input-group-text">€</span>
                                 </div>
-                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Betrag ein.</div>
+                                <div class="invalid-feedback">Bitte geben Sie einen gültigen Betrag ein (z. B. 5,00 oder 5.00).</div>
                             </div>
                             <div class="col-md-6">
                                 <label for="limit_betrag" class="form-label">Limit-Betrag (€)</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control validate-decimal" id="limit_betrag" name="limit_betrag" 
-                                           value="<?php echo htmlspecialchars($verknuepfung['limit_betrag'] !== null ? str_replace('.', ',', $verknuepfung['limit_betrag']) : ''); ?>" 
+                                           value="<?php echo htmlspecialchars($verknuepfung['limit_betrag'] !== null ? str_replace('.', ',', number_format($verknuepfung['limit_betrag'], 2, '.', '')) : ''); ?>" 
                                            placeholder="Kein Limit">
                                     <span class="input-group-text">€</span>
                                 </div>
@@ -463,6 +470,7 @@ $current_year = date('Y');
                         <li>Der Betrag pro Bahn wird für die Spendenberechnung verwendet</li>
                         <li>Das Limit ist optional und begrenzt die maximale Spende für diesen Schwimmer</li>
                         <li>Wenn kein Limit angegeben ist, gibt es keine Obergrenze</li>
+                        <li><strong>Betragsformat:</strong> Verwenden Sie Komma oder Punkt als Dezimaltrennzeichen (z. B. 5,00 oder 5.00)</li>
                     </ul>
                     
                     <hr>
@@ -473,7 +481,6 @@ $current_year = date('Y');
             </div>
         </div>
     </div>
-
 <?php endif; ?>
 
 <?php
