@@ -348,7 +348,7 @@ try {
                             $stmt->execute([$sponsor['id']]);
                             $hs = $stmt->fetch(PDO::FETCH_ASSOC);
                             if ($hs):
-                                echo "<p>Betrag pro Bahn:                                 echo htmlspecialchars($hs['betrag_pro_bahn'] ?? 'Nicht konfiguriert');
+                                echo "<p>Betrag pro Bahn: " . htmlspecialchars($hs['betrag_pro_bahn'] ?? 'Nicht konfiguriert');
                                 echo "</p><p>Limit: ";
                                 echo htmlspecialchars($hs['limit'] ?? 'Kein Limit');
                                 echo "</p>";
