@@ -1,10 +1,9 @@
 <?php
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/includes/header.php';
 
 // Seite Titel definieren
 $page_title = "Sponsoren verwalten";
-
-require_once __DIR__ . '/includes/header.php';
 
 // Aktionen verarbeiten
 $action = $_GET['action'] ?? 'list';
@@ -357,7 +356,7 @@ try {
                             endif;
                             ?>
                         <?php endif; ?>
-                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -365,5 +364,7 @@ try {
 <?php endif; ?>
 
 <?php
+$additional_scripts = [
+    $base_url . 'js/main.js'
+];
 require_once __DIR__ . '/includes/footer.php';
-?>
