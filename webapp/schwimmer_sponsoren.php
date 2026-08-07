@@ -45,11 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
         $schwimmer_id = (int)$_POST['schwimmer_id'];
         $sponsor_id = (int)$_POST['sponsor_id'];
-        
-        // Betrag pro Bahn: Komma durch Punkt ersetzen und als Float speichern
         $betrag_pro_bahn = (float)str_replace(',', '.', $_POST['betrag_pro_bahn']);
-        
-        // Limit-Betrag: Optional, nur setzen wenn ein Wert eingegeben wurde
         $limit_betrag = $_POST['limit_betrag'] !== '' ? (float)str_replace(',', '.', $_POST['limit_betrag']) : null;
         
         if ($id) {
@@ -67,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = "success";
         }
         
-        // Weiterleitung mit den tatsächlichen POST-Werten (nicht GET)
+        // Weiterleitung mit POST-Werten (nicht GET)
         $filter_params = '';
         if (isset($_POST['schwimmer_id']) && !empty($_POST['schwimmer_id'])) {
             $filter_params .= '&schwimmer_id=' . (int)$_POST['schwimmer_id'];
