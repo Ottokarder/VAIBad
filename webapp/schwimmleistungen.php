@@ -2,6 +2,9 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/includes/header.php';
 
+// Seite Titel definieren
+$page_title = "Schwimmleistungen verwalten";
+
 // Aktionen verarbeiten
 $action = $_GET['action'] ?? 'list';
 $message = '';
@@ -59,8 +62,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = "success";
         }
         
-        // Weiterleitung
-        $schwimmer_id_param = isset($_GET['schwimmer_id']) ? '&schwimmer_id=' . $_GET['schwimmer_id'] : '';
+        // Weiterleitung mit POST-Werten (nicht GET)
+        $schwimmer_id_param = isset($_POST['schwimmer_id']) ? '&schwimmer_id=' . (int)$_POST['schwimmer_id'] : '';
         if (isset($_POST['save_and_continue'])) {
             header("Location: schwimmleistungen.php?action=edit&id=$id" . $schwimmer_id_param);
             exit();
@@ -93,12 +96,21 @@ if ($action === 'edit' && isset($_GET['id'])) {
 $alle_leistungen = [];
 if ($action === 'list') {
     try {
-        $schwimmer_filter = isset($_GET['schwimmer_id']) ? "WHERE schwimmer_id = " . (int)$_GET['schwimmer_id'] : "";
-        $stmt = $pdo->query("SELECT sl.*, s.vorname, s.nachname, s.geburtsjahr 
-                             FROM schwimmleistungen sl 
-                             JOIN schwimmer s ON sl.schwimmer_id = s.id 
-                             $schwimmer_filter 
-                             ORDER BY sl.datum DESC, s.nachname, s.vorname");
+        if (isset($_GET['schwimmer_id']) && !empty($_GET['schwimmer_id'])) {
+            // Filter für bestimmten Schwimmer
+            $stmt = $pdo->prepare("SELECT sl.*, s.vorname, s.nachname, s.geburtsjahr 
+                                   FROM schwimmleistungen sl 
+                                   JOIN schwimmer s ON sl.schwimmer_id = s.id 
+                                   WHERE sl.schwimmer_id = ? 
+                                   ORDER BY sl.datum DESC, s.nachname, s.vorname");
+            $stmt->execute([(int)$_GET['schwimmer_id']]);
+        } else {
+            // Alle Leistungen aller Schwimmer anzeigen
+            $stmt = $pdo->query("SELECT sl.*, s.vorname, s.nachname, s.geburtsjahr 
+                                   FROM schwimmleistungen sl 
+                                   JOIN schwimmer s ON sl.schwimmer_id = s.id 
+                                   ORDER BY sl.datum DESC, s.nachname, s.vorname");
+        }
         $alle_leistungen = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (PDOException $e) {
         $message = "Fehler beim Laden der Leistungen: " . $e->getMessage();
@@ -247,7 +259,9 @@ $current_year = date('Y');
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center text-muted">Keine Schwimmleistungen gefunden</td>
+                                <td colspan="8" class="text-center text-muted">
+                                    <?php echo isset($_GET['schwimmer_id']) ? 'Keine Leistungen für diesen Schwimmer gefunden' : 'Keine Schwimmleistungen gefunden'; ?>
+                                </td>
                             </tr>
                         <?php endif; ?>
                     </tbody>
@@ -400,7 +414,6 @@ $current_year = date('Y');
             </div>
         </div>
     </div>
-
 <?php endif; ?>
 
 <?php
