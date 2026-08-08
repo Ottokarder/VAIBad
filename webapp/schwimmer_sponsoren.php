@@ -63,20 +63,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = "success";
         }
         
-        // Weiterleitung mit POST-Werten (nicht GET)
-        $filter_params = '';
-        if (isset($_POST['schwimmer_id']) && !empty($_POST['schwimmer_id'])) {
-            $filter_params .= '&schwimmer_id=' . (int)$_POST['schwimmer_id'];
-        }
-        if (isset($_POST['sponsor_id']) && !empty($_POST['sponsor_id'])) {
-            $filter_params .= '&sponsor_id=' . (int)$_POST['sponsor_id'];
-        }
-        
+        // Weiterleitung mit korrekter URL (? statt & am Anfang)
         if (isset($_POST['save_and_continue'])) {
-            header("Location: schwimmer_sponsoren.php?action=edit&id=$id" . $filter_params);
+            // Für "Speichern & Weiter bearbeiten": action=edit + id + Filter
+            $params = '?action=edit&id=' . $id;
+            if (isset($_POST['schwimmer_id']) && !empty($_POST['schwimmer_id'])) {
+                $params .= '&schwimmer_id=' . (int)$_POST['schwimmer_id'];
+            }
+            if (isset($_POST['sponsor_id']) && !empty($_POST['sponsor_id'])) {
+                $params .= '&sponsor_id=' . (int)$_POST['sponsor_id'];
+            }
+            header("Location: schwimmer_sponsoren.php" . $params);
             exit();
         } else {
-            header("Location: schwimmer_sponsoren.php" . $filter_params);
+            // Für "Speichern": nur Filter-Parameter
+            $params = '';
+            if (isset($_POST['schwimmer_id']) && !empty($_POST['schwimmer_id'])) {
+                $params = '?schwimmer_id=' . (int)$_POST['schwimmer_id'];
+            }
+            if (isset($_POST['sponsor_id']) && !empty($_POST['sponsor_id'])) {
+                $params .= (strpos($params, '?') !== false ? '&' : '?') . 'sponsor_id=' . (int)$_POST['sponsor_id'];
+            }
+            header("Location: schwimmer_sponsoren.php" . $params);
             exit();
         }
     } catch (PDOException $e) {
@@ -403,7 +411,7 @@ $current_year = date('Y');
                                 <label for="limit_betrag" class="form-label">Limit-Betrag (€)</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control validate-decimal" id="limit_betrag" name="limit_betrag" 
-                                           value="<?php echo htmlspecialchars($verknuepfung['limit_betrag'] !== null ? str_replace('.', ',', number_format($verknuepfung['limit_betrag'], 2, '.', '')) : ''); ?>" 
+                                           value="<?php echo htmlspecialchars(($verknuepfung && $verknuepfung['limit_betrag'] !== null) ? str_replace('.', ',', number_format($verknuepfung['limit_betrag'], 2, '.', '')) : ''); ?>" 
                                            placeholder="Kein Limit">
                                     <span class="input-group-text">€</span>
                                 </div>
