@@ -318,19 +318,31 @@ $current_year = date('Y');
                             <input type="hidden" name="id" value="<?php echo $leistung['id']; ?>">
                         <?php endif; ?>
                         
-                        <div class="mb-3">
-                            <label for="schwimmer_id" class="form-label">Schwimmer *</label>
-                            <select class="form-select" id="schwimmer_id" name="schwimmer_id" required>
-                                <option value="">-- Schwimmer auswählen --</option>
-                                <?php foreach ($schwimmer_list as $s): ?>
-                                    <option value="<?php echo $s['id']; ?>" 
-                                        <?php echo (($leistung['schwimmer_id'] ?? '') == $s['id'] || (isset($_GET['schwimmer_id']) && $_GET['schwimmer_id'] == $s['id'])) ? 'selected' : ''; ?>
-                                        <?php echo htmlspecialchars($s['vorname'] . ' ' . $s['nachname']); ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-                            <div class="invalid-feedback">Bitte wählen Sie einen Schwimmer aus.</div>
-                        </div>
+                        <?php if (isset($_GET["schwimmer_id"]) || isset($leistung["schwimmer_id"])): ?>
+                            <input type="hidden" name="schwimmer_id" value="<?php echo (int)($_GET["schwimmer_id"] ?? $leistung["schwimmer_id"] ?? 0); ?>">
+                            <div class="mb-3">
+                                <label class="form-label">Schwimmer</label>
+                                <input type="text" class="form-control" value="<?php
+                                    $schwimmer_name = "";
+                                    if (isset($_GET["schwimmer_id"]) && !empty($_GET["schwimmer_id"])) {
+                                        $stmt = $pdo->prepare("SELECT vorname, nachname FROM schwimmer WHERE id = ?");
+                                        $stmt->execute([(int)$_GET["schwimmer_id"]]);
+                                        $s = $stmt->fetch(PDO::FETCH_ASSOC);
+                                        $schwimmer_name = $s ? htmlspecialchars($s["vorname"] . " " . $s["nachname"]) : "Unbekannt";
+                                    } elseif (isset($leistung["schwimmer_id"]) && !empty($leistung["schwimmer_id"])) {
+                                        $stmt = $pdo->prepare("SELECT vorname, nachname FROM schwimmer WHERE id = ?");
+                                        $stmt->execute([(int)$leistung["schwimmer_id"]]);
+                                        $s = $stmt->fetch(PDO::FETCH_ASSOC);
+                                        $schwimmer_name = $s ? htmlspecialchars($s["vorname"] . " " . $s["nachname"]) : "Unbekannt";
+                                    }
+                                    echo $schwimmer_name;
+                                ?>" readonly>
+                            </div>
+                        <?php else: ?>
+                            <div class="alert alert-warning">
+                                Kein Schwimmer ausgewählt. Bitte wählen Sie einen Schwimmer aus der Liste.
+                            </div>
+                        <?php endif; ?>
                         
                         <div class="row mb-3">
                             <div class="col-md-6">
