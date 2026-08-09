@@ -392,12 +392,12 @@ $current_year = date('Y');
                                     <?php foreach ($sponsoren_list as $sp): ?>
                                         <option value="<?php echo $sp['id']; ?>" 
                                             <?php echo (($verknuepfung['sponsor_id'] ?? '') == $sp['id'] || (isset($_GET['sponsor_id']) && $_GET['sponsor_id'] == $sp['id'])) ? 'selected' : ''; ?>
-                                            <?php echo htmlspecialchars($sp['name']); ?>
-                                            <?php 
+                                            <?php echo htmlspecialchars($sp['name']); 
                                             $stmt_check = $pdo->prepare("SELECT ist_hauptsponsor FROM sponsoren WHERE id = ?");
                                             $stmt_check->execute([$sp['id']]);
                                             $is_hs = $stmt_check->fetchColumn();
-                                            if ($is_hs):
+                                            if ($is_hs) echo " (Hauptsponsor)";
+                                            ?>
                                                 echo " (Hauptsponsor)";
                                             endif;
                                             ?>
