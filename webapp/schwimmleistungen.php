@@ -166,7 +166,7 @@ $current_year = date('Y');
             <h1 class="page-header m-0">
                 <i class="fas fa-swimming-pool"></i> Schwimmleistungen
             </h1>
-            <a href="schwimmleistungen.php?action=add<?php echo isset($_GET['schwimmer_id']) ? '&schwimmer_id=' . $_GET['schwimmer_id'] : ''; ?>" 
+            <a href="schwimmleistungen.php?action=add<?php echo (isset($_GET['schwimmer_id']) ? '&schwimmer_id=' . $_GET['schwimmer_id'] : (isset($current_schwimmer['id']) ? '&schwimmer_id=' . $current_schwimmer['id'] : '')); ?>" 
                class="btn btn-primary">
                 <i class="fas fa-plus"></i> Neue Leistung
             </a>

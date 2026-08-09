@@ -204,7 +204,7 @@ $current_year = date('Y');
             <h1 class="page-header m-0">
                 <i class="fas fa-link"></i> Schwimmer-Sponsoren
             </h1>
-            <a href="schwimmer_sponsoren.php?action=add<?php echo (isset($_GET['schwimmer_id']) ? '&schwimmer_id=' . $_GET['schwimmer_id'] : '') . (isset($_GET['sponsor_id']) ? '&sponsor_id=' . $_GET['sponsor_id'] : ''); ?>" 
+            <a href="schwimmer_sponsoren.php?action=add<?php echo (isset($_GET['schwimmer_id']) ? '&schwimmer_id=' . $_GET['schwimmer_id'] : (isset($current_schwimmer['id']) ? '&schwimmer_id=' . $current_schwimmer['id'] : '')) . (isset($_GET['sponsor_id']) ? '&sponsor_id=' . $_GET['sponsor_id'] : (isset($current_sponsor['id']) ? '&sponsor_id=' . $current_sponsor['id'] : '')); ?>" 
                class="btn btn-primary">
                 <i class="fas fa-plus"></i> Neue Verknüpfung
             </a>
