@@ -389,7 +389,18 @@ $current_year = date('Y');
                                 <label for="sponsor_id" class="form-label">Sponsor *</label>
                                 <select class="form-select" id="sponsor_id" name="sponsor_id" required>
                                     <option value="">-- Sponsor auswählen --</option>
-                                    <?php foreach ($sponsoren_list as $sp): ?>
+                                    <?php 
+                                    // Falls $sponsoren_list leer ist, neu laden
+                                    if (empty($sponsoren_list)) {
+                                        try {
+                                            $stmt = $pdo->query("SELECT id, name FROM sponsoren ORDER BY name");
+                                            $sponsoren_list = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                        } catch (PDOException $e) {
+                                            $sponsoren_list = [];
+                                        }
+                                    }
+                                    foreach ($sponsoren_list as $sp):
+                                    ?>
                                         <option value="<?php echo $sp['id']; ?>" 
                                             <?php echo (($verknuepfung['sponsor_id'] ?? '') == $sp['id'] || (isset($_GET['sponsor_id']) && $_GET['sponsor_id'] == $sp['id'])) ? 'selected' : ''; ?>
                                             <?php echo htmlspecialchars($sp['name']); 
