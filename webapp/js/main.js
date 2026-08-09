@@ -167,6 +167,8 @@ function initConfirmationDialogs() {
 
 // Datumsauswahl initialisieren
 function initDatePickers() {
+    // Hier kann Datumsauswahl-Code hin, falls benötigt
+}
 
 // Initialisiere DataTables für Tabellen in Tabs, wenn der Tab geöffnet wird
 $(document).on('shown.bs.tab', function(e) {
