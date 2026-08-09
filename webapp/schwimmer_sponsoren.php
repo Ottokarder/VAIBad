@@ -366,7 +366,7 @@ $current_year = date('Y');
                                     <option value="">-- Schwimmer auswählen --</option>
                                     <?php foreach ($schwimmer_list as $s): ?>
                                         <option value="<?php echo $s['id']; ?>" 
-                                            <?php echo ($verknuepfung['schwimmer_id'] ?? '') == $s['id'] ? 'selected' : ''; ?>>
+                                            <?php echo (($verknuepfung['schwimmer_id'] ?? '') == $s['id'] || (isset($_GET['schwimmer_id']) && $_GET['schwimmer_id'] == $s['id'])) ? 'selected' : ''; ?>
                                             <?php echo htmlspecialchars($s['vorname'] . ' ' . $s['nachname']); ?>
                                         </option>
                                     <?php endforeach; ?>
@@ -379,7 +379,7 @@ $current_year = date('Y');
                                     <option value="">-- Sponsor auswählen --</option>
                                     <?php foreach ($sponsoren_list as $sp): ?>
                                         <option value="<?php echo $sp['id']; ?>" 
-                                            <?php echo ($verknuepfung['sponsor_id'] ?? '') == $sp['id'] ? 'selected' : ''; ?>>
+                                            <?php echo (($verknuepfung['sponsor_id'] ?? '') == $sp['id'] || (isset($_GET['sponsor_id']) && $_GET['sponsor_id'] == $sp['id'])) ? 'selected' : ''; ?>
                                             <?php echo htmlspecialchars($sp['name']); ?>
                                             <?php 
                                             $stmt_check = $pdo->prepare("SELECT ist_hauptsponsor FROM sponsoren WHERE id = ?");

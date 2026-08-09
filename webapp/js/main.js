@@ -167,3 +167,37 @@ function initConfirmationDialogs() {
 
 // Datumsauswahl initialisieren
 function initDatePickers() {
+
+// Initialisiere DataTables für Tabellen in Tabs, wenn der Tab geöffnet wird
+$(document).on('shown.bs.tab', function(e) {
+    var target = $(e.target).attr("href");
+    $(target).find('.data-table').each(function() {
+        if (!$.fn.DataTable.isDataTable(this)) {
+            $(this).DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/de-DE.json'
+                },
+                responsive: true,
+                dom: '<"row mb-3"<"col-md-6"B><"col-md-6"f>>rtip',
+                buttons: [
+                    {
+                        extend: 'collection',
+                        text: '<i class="fas fa-download"></i> Export',
+                        className: 'btn btn-outline-secondary',
+                        buttons: [
+                            { extend: 'csv', text: '<i class="fas fa-file-csv"></i> CSV' },
+                            { extend: 'excel', text: '<i class="fas fa-file-excel"></i> Excel' },
+                            { extend: 'pdf', text: '<i class="fas fa-file-pdf"></i> PDF' },
+                            { extend: 'print', text: '<i class="fas fa-print"></i> Drucken' }
+                        ]
+                    }
+                ],
+                lengthMenu: [
+                    [10, 25, 50, 100, -1],
+                    [10, 25, 50, 100, 'Alle']
+                ],
+                pageLength: 25
+            });
+        }
+    });
+});

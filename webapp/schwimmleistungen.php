@@ -324,7 +324,7 @@ $current_year = date('Y');
                                 <option value="">-- Schwimmer auswählen --</option>
                                 <?php foreach ($schwimmer_list as $s): ?>
                                     <option value="<?php echo $s['id']; ?>" 
-                                        <?php echo ($leistung['schwimmer_id'] ?? '') == $s['id'] ? 'selected' : ''; ?>>
+                                        <?php echo (($leistung['schwimmer_id'] ?? '') == $s['id'] || (isset($_GET['schwimmer_id']) && $_GET['schwimmer_id'] == $s['id'])) ? 'selected' : ''; ?>
                                         <?php echo htmlspecialchars($s['vorname'] . ' ' . $s['nachname']); ?>
                                     </option>
                                 <?php endforeach; ?>
