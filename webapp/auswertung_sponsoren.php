@@ -22,7 +22,7 @@ try {
                          COUNT(DISTINCT ss.schwimmer_id) as schwimmer_count,
                          COALESCE(SUM(ss.betrag_pro_bahn), 0) as total_betrag_pro_bahn,
                          COALESCE(AVG(ss.betrag_pro_bahn), 0) as avg_betrag_pro_bahn,
-                         COALESCE(SUM(LEAST(sl.anzahl_bahnen * ss.betrag_pro_bahn, IFNULL(ss.limit_betrag, sl.anzahl_bahnen * ss.betrag_pro_bahn))), 0) as total_spenden
+                         COALESCE(SUM(LEAST((sl.anzahl_bahnen_vormittag + sl.anzahl_bahnen_nachmittag) * ss.betrag_pro_bahn, IFNULL(ss.limit_betrag, (sl.anzahl_bahnen_vormittag + sl.anzahl_bahnen_nachmittag) * ss.betrag_pro_bahn))), 0) as total_spenden
                          FROM sponsoren sp
                          LEFT JOIN schwimmer_sponsoren ss ON sp.id = ss.sponsor_id
                          LEFT JOIN schwimmleistungen sl ON ss.schwimmer_id = sl.schwimmer_id
@@ -31,7 +31,7 @@ try {
     $sponsoren_stats = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Gesamtbahnen
-    $stmt = $pdo->query("SELECT COALESCE(SUM(anzahl_bahnen), 0) FROM schwimmleistungen");
+    $stmt = $pdo->query("SELECT COALESCE(SUM(anzahl_bahnen_vormittag), 0) + COALESCE(SUM(anzahl_bahnen_nachmittag), 0) FROM schwimmleistungen");
     $gesamt_bahnen = $stmt->fetchColumn();
     
     // Hauptsponsoren vs. normale Sponsoren
@@ -41,7 +41,7 @@ try {
                          COALESCE(SUM(total_spenden), 0) as total_spenden
                          FROM (
                              SELECT sp.ist_hauptsponsor, 
-                                    COALESCE(SUM(LEAST(sl.anzahl_bahnen * ss.betrag_pro_bahn, IFNULL(ss.limit_betrag, sl.anzahl_bahnen * ss.betrag_pro_bahn))), 0) as total_spenden
+                                    COALESCE(SUM(LEAST((sl.anzahl_bahnen_vormittag + sl.anzahl_bahnen_nachmittag) * ss.betrag_pro_bahn, IFNULL(ss.limit_betrag, (sl.anzahl_bahnen_vormittag + sl.anzahl_bahnen_nachmittag) * ss.betrag_pro_bahn))), 0) as total_spenden
                              FROM sponsoren sp
                              LEFT JOIN schwimmer_sponsoren ss ON sp.id = ss.sponsor_id
                              LEFT JOIN schwimmleistungen sl ON ss.schwimmer_id = sl.schwimmer_id

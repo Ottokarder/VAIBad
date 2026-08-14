@@ -298,7 +298,7 @@ $current_year = date('Y');
                                 $bahnenlaenge = ($alter < 14) ? 25 : 50;
                                 
                                 // Gesamtspenden aus den Leistungen berechnen
-                                $stmt_leistungen = $pdo->prepare("SELECT COALESCE(SUM(anzahl_bahnen), 0) as total_bahnen FROM schwimmleistungen WHERE schwimmer_id = ?");
+                                $stmt_leistungen = $pdo->prepare("SELECT COALESCE(SUM(anzahl_bahnen_vormittag), 0) + COALESCE(SUM(anzahl_bahnen_nachmittag), 0) as total_bahnen FROM schwimmleistungen WHERE schwimmer_id = ?");
                                 $stmt_leistungen->execute([$v['schwimmer_id']]);
                                 $total_bahnen = $stmt_leistungen->fetchColumn();
                                 

@@ -44,19 +44,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $id = isset($_POST['id']) ? (int)$_POST['id'] : null;
         $schwimmer_id = (int)$_POST['schwimmer_id'];
-        $anzahl_bahnen = (int)$_POST['anzahl_bahnen'];
+        $anzahl_bahnen_vormittag = (int)($_POST['anzahl_bahnen_vormittag'] ?? 0);
+        $anzahl_bahnen_nachmittag = (int)($_POST['anzahl_bahnen_nachmittag'] ?? 0);
         $datum = $_POST['datum'] ? date('Y-m-d', strtotime($_POST['datum'])) : date('Y-m-d');
+        
+        if ($anzahl_bahnen_vormittag < 0 || $anzahl_bahnen_nachmittag < 0) {
+            throw new Exception("Die Anzahl der Bahnen darf nicht negativ sein.");
+        }
         
         if ($id) {
             // Aktualisieren
-            $stmt = $pdo->prepare("UPDATE schwimmleistungen SET schwimmer_id = ?, anzahl_bahnen = ?, datum = ? WHERE id = ?");
-            $stmt->execute([$schwimmer_id, $anzahl_bahnen, $datum, $id]);
+            $stmt = $pdo->prepare("UPDATE schwimmleistungen SET schwimmer_id = ?, anzahl_bahnen_vormittag = ?, anzahl_bahnen_nachmittag = ?, datum = ? WHERE id = ?");
+            $stmt->execute([$schwimmer_id, $anzahl_bahnen_vormittag, $anzahl_bahnen_nachmittag, $datum, $id]);
             $message = "Leistung erfolgreich aktualisiert.";
             $message_type = "success";
         } else {
             // Neu erstellen
-            $stmt = $pdo->prepare("INSERT INTO schwimmleistungen (schwimmer_id, anzahl_bahnen, datum) VALUES (?, ?, ?)");
-            $stmt->execute([$schwimmer_id, $anzahl_bahnen, $datum]);
+            $stmt = $pdo->prepare("INSERT INTO schwimmleistungen (schwimmer_id, anzahl_bahnen_vormittag, anzahl_bahnen_nachmittag, datum) VALUES (?, ?, ?, ?)");
+            $stmt->execute([$schwimmer_id, $anzahl_bahnen_vormittag, $anzahl_bahnen_nachmittag, $datum]);
             $id = $pdo->lastInsertId();
             $message = "Leistung erfolgreich hinzugefügt.";
             $message_type = "success";
@@ -228,7 +233,9 @@ $current_year = date('Y');
                             <th>ID</th>
                             <th>Schwimmer</th>
                             <th>Alter</th>
-                            <th>Bahnen</th>
+                            <th>Bahnen Vormittag</th>
+                            <th>Bahnen Nachmittag</th>
+                            <th>Bahnen Gesamt</th>
                             <th>Bahnlänge</th>
                             <th>Gesamtstrecke</th>
                             <th>Datum</th>
@@ -241,13 +248,18 @@ $current_year = date('Y');
                                 <?php 
                                 $alter = $current_year - $l['geburtsjahr'];
                                 $bahnenlaenge = ($alter < 14) ? 25 : 50;
-                                $gesamtstrecke = $l['anzahl_bahnen'] * $bahnenlaenge;
+                                $bahnen_vormittag = (int)($l['anzahl_bahnen_vormittag'] ?? 0);
+                                $bahnen_nachmittag = (int)($l['anzahl_bahnen_nachmittag'] ?? 0);
+                                $bahnen_gesamt = $bahnen_vormittag + $bahnen_nachmittag;
+                                $gesamtstrecke = $bahnen_gesamt * $bahnenlaenge;
                                 ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($l['id']); ?></td>
                                     <td><?php echo htmlspecialchars($l['vorname'] . ' ' . $l['nachname']); ?></td>
                                     <td><?php echo $alter; ?></td>
-                                    <td><?php echo htmlspecialchars($l['anzahl_bahnen']); ?></td>
+                                    <td><?php echo $bahnen_vormittag; ?></td>
+                                    <td><?php echo $bahnen_nachmittag; ?></td>
+                                    <td><strong><?php echo $bahnen_gesamt; ?></strong></td>
                                     <td><?php echo $bahnenlaenge; ?> m</td>
                                     <td><?php echo number_format($gesamtstrecke, 0, ',', '.'); ?> m</td>
                                     <td><?php echo date('d.m.Y', strtotime($l['datum'])); ?></td>
@@ -268,7 +280,7 @@ $current_year = date('Y');
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="8" class="text-center text-muted">
+                                <td colspan="10" class="text-center text-muted">
                                     <?php echo isset($_GET['schwimmer_id']) ? 'Keine Leistungen für diesen Schwimmer gefunden' : 'Keine Schwimmleistungen gefunden'; ?>
                                 </td>
                             </tr>
@@ -278,23 +290,26 @@ $current_year = date('Y');
                         <tr>
                             <th colspan="3">Gesamt</th>
                             <th>
-                                <?php 
-                                $total_bahnen = array_sum(array_column($alle_leistungen, 'anzahl_bahnen'));
-                                echo $total_bahnen;
-                                ?>
-                            </th>
-                            <th>-</th>
-                            <th>
-                                <?php 
+                                <?php
+                                $total_vormittag = 0;
+                                $total_nachmittag = 0;
                                 $total_strecke = 0;
                                 foreach ($alle_leistungen as $l) {
                                     $alter = $current_year - $l['geburtsjahr'];
                                     $bahnenlaenge = ($alter < 14) ? 25 : 50;
-                                    $total_strecke += $l['anzahl_bahnen'] * $bahnenlaenge;
+                                    $bv = (int)($l['anzahl_bahnen_vormittag'] ?? 0);
+                                    $bn = (int)($l['anzahl_bahnen_nachmittag'] ?? 0);
+                                    $total_vormittag += $bv;
+                                    $total_nachmittag += $bn;
+                                    $total_strecke += ($bv + $bn) * $bahnenlaenge;
                                 }
-                                echo number_format($total_strecke, 0, ',', '.');
-                                ?> m
+                                echo $total_vormittag;
+                                ?>
                             </th>
+                            <th><?php echo $total_nachmittag; ?></th>
+                            <th><?php echo $total_vormittag + $total_nachmittag; ?></th>
+                            <th>-</th>
+                            <th><?php echo number_format($total_strecke, 0, ',', '.'); ?> m</th>
                             <th colspan="2"></th>
                         </tr>
                     </tfoot>
@@ -345,15 +360,23 @@ $current_year = date('Y');
                         <?php endif; ?>
                         
                         <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="anzahl_bahnen" class="form-label">Anzahl Bahnen *</label>
-                                <input type="number" class="form-control validate-number" id="anzahl_bahnen" name="anzahl_bahnen" 
-                                       value="<?php echo htmlspecialchars($leistung['anzahl_bahnen'] ?? '0'); ?>" 
-                                       min="0" max="1000" 
-                                       required>
+                            <div class="col-md-4">
+                                <label for="anzahl_bahnen_vormittag" class="form-label">Bahnen Vormittag</label>
+                                <input type="number" class="form-control validate-number" id="anzahl_bahnen_vormittag" name="anzahl_bahnen_vormittag" 
+                                       value="<?php echo htmlspecialchars($leistung['anzahl_bahnen_vormittag'] ?? '0'); ?>" 
+                                       min="0" max="1000">
+                                <small class="form-text text-muted">0 = hat vormittags nicht geschwommen.</small>
                                 <div class="invalid-feedback">Bitte geben Sie eine gültige Anzahl ein.</div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
+                                <label for="anzahl_bahnen_nachmittag" class="form-label">Bahnen Nachmittag</label>
+                                <input type="number" class="form-control validate-number" id="anzahl_bahnen_nachmittag" name="anzahl_bahnen_nachmittag" 
+                                       value="<?php echo htmlspecialchars($leistung['anzahl_bahnen_nachmittag'] ?? '0'); ?>" 
+                                       min="0" max="1000">
+                                <small class="form-text text-muted">0 = hat nachmittags nicht geschwommen.</small>
+                                <div class="invalid-feedback">Bitte geben Sie eine gültige Anzahl ein.</div>
+                            </div>
+                            <div class="col-md-4">
                                 <label for="datum" class="form-label">Datum *</label>
                                 <input type="date" class="form-control" id="datum" name="datum" 
                                        value="<?php echo htmlspecialchars($leistung['datum'] ?? date('Y-m-d')); ?>" 
@@ -364,18 +387,26 @@ $current_year = date('Y');
                         
                         <?php if ($leistung): ?>
                             <div class="row mb-3">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Bahnlänge</label>
                                     <?php 
                                     $schwimmer_alter = $current_year - ($leistung['geburtsjahr'] ?? 0);
                                     $bahnenlaenge = ($schwimmer_alter < 14) ? 25 : 50;
-                                    $gesamtstrecke = $leistung['anzahl_bahnen'] * $bahnenlaenge;
+                                    $bv = (int)($leistung['anzahl_bahnen_vormittag'] ?? 0);
+                                    $bn = (int)($leistung['anzahl_bahnen_nachmittag'] ?? 0);
+                                    $gesamtstrecke = ($bv + $bn) * $bahnenlaenge;
                                     ?>
                                     <input type="text" class="form-control" 
                                            value="<?php echo $bahnenlaenge; ?> m" 
                                            readonly>
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
+                                    <label class="form-label">Bahnen gesamt</label>
+                                    <input type="text" class="form-control" 
+                                           value="<?php echo ($bv + $bn); ?>" 
+                                           readonly>
+                                </div>
+                                <div class="col-md-4">
                                     <label class="form-label">Gesamtstrecke</label>
                                     <input type="text" class="form-control" 
                                            value="<?php echo number_format($gesamtstrecke, 0, ',', '.'); ?> m" 

@@ -46,17 +46,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $team = sanitizeInput($_POST['team'] ?? '');
         
         if ($id) {
-            // Aktualisieren
+            // Aktualisieren (Startnummer bleibt unverändert, da sie fest vergeben wird)
             $stmt = $pdo->prepare("UPDATE schwimmer SET vorname = ?, nachname = ?, geburtsjahr = ?, team = ? WHERE id = ?");
             $stmt->execute([$vorname, $nachname, $geburtsjahr, $team, $id]);
             $message = "Schwimmer erfolgreich aktualisiert.";
             $message_type = "success";
         } else {
-            // Neu erstellen
-            $stmt = $pdo->prepare("INSERT INTO schwimmer (vorname, nachname, geburtsjahr, team) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$vorname, $nachname, $geburtsjahr, $team]);
+            // Neu erstellen: Startnummer automatisch vergeben (MAX+1), falls nicht angegeben
+            $startnummer_input = isset($_POST['startnummer']) ? trim($_POST['startnummer']) : '';
+            if ($startnummer_input !== '') {
+                $startnummer = (int)$startnummer_input;
+                if ($startnummer <= 0) {
+                    throw new Exception("Bitte geben Sie eine gültige Startnummer ein.");
+                }
+                // Eindeutigkeit prüfen
+                $check = $pdo->prepare("SELECT COUNT(*) FROM schwimmer WHERE startnummer = ?");
+                $check->execute([$startnummer]);
+                if ($check->fetchColumn() > 0) {
+                    throw new Exception("Die Startnummer " . $startnummer . " ist bereits vergeben. Bitte eine andere wählen.");
+                }
+            } else {
+                $startnummer = ((int)$pdo->query("SELECT COALESCE(MAX(startnummer), 0) + 1 FROM schwimmer")->fetchColumn());
+            }
+            
+            $stmt = $pdo->prepare("INSERT INTO schwimmer (startnummer, vorname, nachname, geburtsjahr, team) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$startnummer, $vorname, $nachname, $geburtsjahr, $team]);
             $id = $pdo->lastInsertId();
-            $message = "Schwimmer erfolgreich hinzugefügt.";
+            $message = "Schwimmer erfolgreich hinzugefügt (Startnummer " . $startnummer . ").";
             $message_type = "success";
         }
         
@@ -147,7 +163,7 @@ $current_year = date('Y');
                 <table class="table table-hover data-table">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>Startnr.</th>
                             <th>Name</th>
                             <th>Geburtsjahr</th>
                             <th>Alter</th>
@@ -160,7 +176,7 @@ $current_year = date('Y');
                         <?php if (!empty($alle_schwimmer)): ?>
                             <?php foreach ($alle_schwimmer as $s): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($s['id']); ?></td>
+                                    <td><strong><?php echo htmlspecialchars($s['startnummer'] ?? '-'); ?></strong></td>
                                     <td><?php echo htmlspecialchars($s['vorname'] . ' ' . $s['nachname']); ?></td>
                                     <td><?php echo htmlspecialchars($s['geburtsjahr']); ?></td>
                                     <td><?php echo ($current_year - $s['geburtsjahr']); ?></td>
@@ -216,6 +232,31 @@ $current_year = date('Y');
                         <?php if ($schwimmer): ?>
                             <input type="hidden" name="id" value="<?php echo $schwimmer['id']; ?>">
                         <?php endif; ?>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="startnummer" class="form-label">Startnummer</label>
+                                <?php if ($schwimmer): ?>
+                                    <input type="text" class="form-control" id="startnummer"
+                                           value="<?php echo htmlspecialchars($schwimmer['startnummer'] ?? '-'); ?>"
+                                           readonly>
+                                    <small class="form-text text-muted">Die Startnummer wird beim Anlegen festgelegt und kann nicht geändert werden.</small>
+                                <?php else: ?>
+                                    <?php
+                                    // Vorschlag: nächste freie Startnummer (MAX+1)
+                                    try {
+                                        $next_startnummer = ((int)$pdo->query("SELECT COALESCE(MAX(startnummer), 0) + 1 FROM schwimmer")->fetchColumn());
+                                    } catch (PDOException $e) {
+                                        $next_startnummer = '';
+                                    }
+                                    ?>
+                                    <input type="number" class="form-control" id="startnummer" name="startnummer"
+                                           value="<?php echo htmlspecialchars((string)$next_startnummer); ?>"
+                                           min="1" placeholder="Leer = automatisch vergeben">
+                                    <small class="form-text text-muted">Leer lassen für automatische Vergabe (nächste freie Nummer).</small>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                         
                         <div class="row mb-3">
                             <div class="col-md-6">

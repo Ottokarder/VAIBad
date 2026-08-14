@@ -50,6 +50,9 @@ require_once __DIR__ . '/../config.php';
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
+                        <a class="nav-link" href="<?php echo $base_url; ?>database_setup.php"><i class="fas fa-tools"></i> DB-Einrichtung</a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link" href="<?php echo $base_url; ?>database_import.php"><i class="fas fa-file-import"></i> Datenbank-Import</a>
                     </li>
                 </ul>

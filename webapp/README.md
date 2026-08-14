@@ -68,11 +68,34 @@ Ein webbasiertes Datenverwaltungssystem für das VAIBad zur Verwaltung von Schwi
 
 Die Datenbank besteht aus folgenden Tabellen:
 
-- `schwimmer`: Schwimmer-Daten (Vorname, Nachname, Geburtsjahr, Team)
+- `schwimmer`: Schwimmer-Daten (Startnummer, Vorname, Nachname, Geburtsjahr, Team)
 - `sponsoren`: Sponsoren-Daten (Name, Hauptsponsor-Flag)
-- `schwimmleistungen`: Schwimmleistungen (Schwimmer-ID, Anzahl Bahnen, Datum)
+- `schwimmleistungen`: Schwimmleistungen (Schwimmer-ID, Bahnen Vormittag, Bahnen Nachmittag, Datum). Pro Schwimmer/Tag wird ein Datensatz angelegt, der Vormittag und Nachmittag getrennt erfasst. 0 = hat in diesem Durchlauf nicht geschwommen.
 - `schwimmer_sponsoren`: Verknüpfung zwischen Schwimmern und Sponsoren (Betrag pro Bahn, Limit)
 - `hauptsponsoren`: Hauptsponsoren-Einstellungen (Sponsor-ID, Betrag pro Bahn, Limit)
+
+### Durchläufe (Vormittag / Nachmittag)
+
+Es gibt zwei Durchläufe pro Veranstaltungstag (vormittags und nachmittags).
+Die Schwimmleistungen werden pro Schwimmer und Tag in einem Datensatz getrennt
+nach Vormittag (`anzahl_bahnen_vormittag`) und Nachmittag (`anzahl_bahnen_nachmittag`)
+geführt. Die Gesamtzahl der Bahnen ergibt sich aus der Summe beider Spalten.
+Schwimmer, die nur in einem Durchlauf schwimmen, erhalten im anderen Durchlauf den Wert 0.
+
+### Startnummern
+
+Jeder Schwimmer erhält beim Anlegen eine eindeutige Startnummer. Wird beim Anlegen
+keine Startnummer angegeben, wird automatisch die nächste freie Nummer (`MAX(startnummer)+1`)
+vergeben. Die Startnummer ist eindeutig und wird in der Schwimmer-Liste sowie im
+Schwimmer-Formular angezeigt. Nach dem Anlegen kann sie nicht mehr geändert werden.
+
+### Einrichtung / Migration
+
+Für Neuinstallationen und zur Aktualisierung bestehender Datenbanken steht das
+Skript `database_setup.php` zur Verfügung. Es richtet alle Tabellen und Views ein
+und migriert bestehende Daten (alte Einzelspalte `anzahl_bahnen` → `anzahl_bahnen_vormittag`,
+vergibt fehlende Startnummern). Das Skript ist idempotent und kann gefahrlos wiederholt
+werden. Im Browser einmalig `database_setup.php` aufrufen.
 
 ### Views
 - `v_schwimmer_gesamtstrecke`: Gesamtstrecke pro Schwimmer

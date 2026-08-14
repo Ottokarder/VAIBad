@@ -158,7 +158,7 @@ try {
 // Gesamtbahnen aller Schwimmer
 $gesamt_bahnen = 0;
 try {
-    $stmt = $pdo->query("SELECT COALESCE(SUM(anzahl_bahnen), 0) FROM schwimmleistungen");
+    $stmt = $pdo->query("SELECT COALESCE(SUM(anzahl_bahnen_vormittag), 0) + COALESCE(SUM(anzahl_bahnen_nachmittag), 0) FROM schwimmleistungen");
     $gesamt_bahnen = $stmt->fetchColumn();
 } catch (PDOException $e) {
     // Ignorieren

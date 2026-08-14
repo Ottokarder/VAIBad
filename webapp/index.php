@@ -17,7 +17,7 @@ try {
     $hauptsponsoren_count = $stmt->fetchColumn();
     
     // Gesamtzahl Bahnen
-    $stmt = $pdo->query("SELECT COALESCE(SUM(anzahl_bahnen), 0) FROM schwimmleistungen");
+    $stmt = $pdo->query("SELECT COALESCE(SUM(anzahl_bahnen_vormittag), 0) + COALESCE(SUM(anzahl_bahnen_nachmittag), 0) FROM schwimmleistungen");
     $gesamt_bahnen = $stmt->fetchColumn();
     
     // Gesamtspenden (aus View)
@@ -29,7 +29,7 @@ try {
     $gesamt_strecke = $stmt->fetchColumn();
     
     // Letzte Aktivitäten
-    $stmt = $pdo->query("SELECT s.vorname, s.nachname, sl.anzahl_bahnen, sl.datum 
+    $stmt = $pdo->query("SELECT s.vorname, s.nachname, sl.anzahl_bahnen_vormittag, sl.anzahl_bahnen_nachmittag, sl.datum 
                          FROM schwimmleistungen sl 
                          JOIN schwimmer s ON sl.schwimmer_id = s.id 
                          ORDER BY sl.datum DESC, sl.id DESC LIMIT 5");
@@ -133,7 +133,7 @@ try {
                                 <?php foreach ($letzte_aktivitaeten as $aktivitaet): ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($aktivitaet['vorname'] . ' ' . $aktivitaet['nachname']); ?></td>
-                                        <td><?php echo htmlspecialchars($aktivitaet['anzahl_bahnen']); ?></td>
+                                        <td><?php echo ((int)$aktivitaet['anzahl_bahnen_vormittag'] + (int)$aktivitaet['anzahl_bahnen_nachmittag']); ?></td>
                                         <td><?php echo date('d.m.Y', strtotime($aktivitaet['datum'])); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
